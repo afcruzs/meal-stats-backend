@@ -6,6 +6,11 @@ import base64
 from subprocess import check_output
 import os
 import socket
+from database.database import Database
+
+DATABASE_HOST = "192.168.0.9"
+DATABASE_PORT = 27017
+DATABASE_NAME = "mealStatsdb"
 
 '''
     This script inits the server and listens in the 8080 port
@@ -17,8 +22,8 @@ generic_args = '$HOME/tensorflow/bazel-bin/tensorflow/examples/label_image/label
 
 
 '''
-    Taken from here:
-    http://stackoverflow.com/questions/24196932/how-can-i-get-the-ip-address-of-eth0-in-python
+Taken from here:
+http://stackoverflow.com/questions/24196932/how-can-i-get-the-ip-address-of-eth0-in-python
 '''
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -34,8 +39,15 @@ def create_args(file_name):
 
 '''
 Remote procedure to classify images.
+Params:
+    image : base 64 image encoded
+    file_extension : name of the image file extension (without period)
+
 '''
-def classify(base64Image, file_extension):
+def classify(params):
+    base64Image = params['image']
+    file_extension = params['file_extension']
+
     time_as_string = str(time()).replace(".","")
     file_path = os.getcwd() + "/" + time_as_string + "." + file_extension
 
@@ -48,6 +60,17 @@ def classify(base64Image, file_extension):
     os.remove(file_path)
     return response
 
+def getNutritionalInfo(params):
+    response = classify(params)
+    top_results = ((label, float(rate))for label, rate  in response)
+    best_label, best_prob = max(top_results, key=lambda x: x[1])
+    print best_label, best_prob
+    db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
+    info = db_connection.getStats(best_label)
+    del info['_id']
+    return [info]
+
+
 '''
 Main server application method, add the needed services
 in the dispatcher.
@@ -57,7 +80,7 @@ def application(request):
     # Dispatcher is dictionary {<method_name>: callable}
     dispatcher["echo"] = lambda s: s
     dispatcher["add"] = lambda a, b: a + b
-    dispatcher["classify"] = classify
+    dispatcher["getNutritionalInfo"] = getNutritionalInfo
 
     response = JSONRPCResponseManager.handle(
         request.data, dispatcher)

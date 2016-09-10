@@ -3,7 +3,7 @@ import json
 import base64
 
 #Set the correct IP and port. Contact your admin :v
-url = "http://192.168.0.12:8080"
+url = "http://192.168.0.8:8080"
 headers = {'content-type': 'application/json'}
 
 def test_classify(image_path):
@@ -15,8 +15,11 @@ def test_classify(image_path):
 
     # Example echo method
     payload = {
-        "method": "classify",
-        "params": [encoded_string, "png"],
+        "method": "getNutritionalInfo",
+        "params": [{
+            'image' : encoded_string,
+            'file_extension' : 'png'
+        }],
         "jsonrpc": "2.0",
         "id": 0,
     }
