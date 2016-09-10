@@ -2,7 +2,8 @@ import requests
 import json
 import base64
 
-url = "http://localhost:4000"
+#Set the correct IP and port. Contact your admin :v
+url = "http://192.168.0.12:8080"
 headers = {'content-type': 'application/json'}
 
 def test_classify(image_path):
@@ -26,23 +27,5 @@ def test_classify(image_path):
 
 
 
-def main():
-    url = "http://localhost:4000"
-    headers = {'content-type': 'application/json'}
-
-
-    # Example echo method
-    payload = {
-        "method": "add",
-        "params": ["23","12"],
-        "jsonrpc": "2.0",
-        "id": 0,
-    }
-    response = requests.post(
-        url, data=json.dumps(payload), headers=headers).json()
-
-    print response
-
 if __name__ == "__main__":
-    #main()
     print test_classify("image.png")
