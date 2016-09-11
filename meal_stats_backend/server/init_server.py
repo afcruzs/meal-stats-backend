@@ -8,8 +8,10 @@ import os
 import socket
 from database.database import Database
 
-DATABASE_HOST = "192.168.0.9"
+#DATABASE_HOST = "192.168.0.9"
+DATABASE_HOST = "localhost"
 DATABASE_PORT = 27017
+#DATABASE_PORT = 21072
 DATABASE_NAME = "mealStatsdb"
 
 '''
@@ -61,13 +63,15 @@ def classify(params):
     return response
 
 def getNutritionalInfo(params):
-    print params
+    print "Request arrived, passing to classifier..."
     response = classify(params)
     top_results = ((label, float(rate))for label, rate  in response)
     best_label, best_prob = max(top_results, key=lambda x: x[1])
-    print best_label, best_prob
+    print "Classifier results", best_label, best_prob
+    print "Going to DB..."
     db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
     info = db_connection.getStats(best_label)
+    print "Info returned: ", info
     if not info:
         return {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
     del info['_id']
