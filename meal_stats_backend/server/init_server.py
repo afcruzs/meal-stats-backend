@@ -61,12 +61,15 @@ def classify(params):
     return response
 
 def getNutritionalInfo(params):
+    print params
     response = classify(params)
     top_results = ((label, float(rate))for label, rate  in response)
     best_label, best_prob = max(top_results, key=lambda x: x[1])
     print best_label, best_prob
     db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
     info = db_connection.getStats(best_label)
+    if not info:
+        return {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
     del info['_id']
     return [info]
 

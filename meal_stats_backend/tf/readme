@@ -1,0 +1,4 @@
+Copy this to tensorflow/tensorflow/examples/label_image and compile the sources.
+
+The tensorflow sources must be in $HOME in order to get them from
+the server.
