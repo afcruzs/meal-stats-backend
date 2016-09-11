@@ -65,17 +65,31 @@ def classify(params):
 def getNutritionalInfo(params):
     print "Request arrived, passing to classifier..."
     response = classify(params)
-    top_results = ((label, float(rate))for label, rate  in response)
-    best_label, best_prob = max(top_results, key=lambda x: x[1])
-    print "Classifier results", best_label, best_prob
+    top_results = [(label, float(rate))for label, rate  in response]
+    top_results.sort(key=lambda x: -x[1])
+
+    results = [top_results[0]]
+    i = 1
+    while i < len(top_results):
+        if top_results[i-1][1] - top_results[i][1] <= 0.1:
+            results.append(top_results[i])
+            i -= 1
+        else:
+            break
+
     print "Going to DB..."
     db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
-    info = db_connection.getStats(best_label)
-    print "Info returned: ", info
-    if not info:
-        return {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
-    del info['_id']
-    return [info]
+    return_results = []
+    print "Classifier results"
+    for best_label, best_prob in results:
+        print best_label, best_prob
+        info = db_connection.getStats(best_label)
+        print "Info returned: ", info
+        if not info:
+            return {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
+        del info['_id']
+
+    return return_results
 
 
 '''
