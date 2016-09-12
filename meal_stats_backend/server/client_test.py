@@ -37,4 +37,4 @@ def test_classify(image_path):
 
 
 if __name__ == "__main__":
-    print test_classify("/home/felipe/meal_stats_backend/server/sphaguetti.jpg")
+    print test_classify("image_for_testing/sphaguetti.jpg")

@@ -18,7 +18,7 @@ class TFClassifer(object):
     '''
     Specify the model path and the labels path (absoulte path).
     '''
-    def __init__(self, modelFullPath = '/tmp/output_graph.pb', labelsFullPath = '/tmp/output_labels.txt'):
+    def __init__(self, modelFullPath = 'tensorflow_model/output_graph.pb', labelsFullPath = 'tensorflow_model/output_labels.txt'):
         self.modelFullPath = modelFullPath
         self.labelsFullPath = labelsFullPath
         self.create_graph() # Creates graph from saved GraphDef.
