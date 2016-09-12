@@ -1,6 +1,6 @@
 # meal-stats-backend
 ## Installation
-This contains the backend of meal stats that support the classificatio of the images and the nutritional information retrieval. In order to run the following dependencies must be installed:
+This contains the backend of meal stats that support the images classification and the nutritional information retrieval. In order to run the following dependencies must be installed:
 
 This steps assume you install tensorflow with **anaconda 2** and it creates a specific enviroment for it (called tensorflow). This should work with pip but has not been tested though.
 
