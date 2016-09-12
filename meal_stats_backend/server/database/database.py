@@ -20,7 +20,6 @@ class Database(object):
         self.connection(database, host, port)
 
     def connection( self, database = 'mealStatsdb', host='localhost', port=27017):
-        print database, host, port
         if self.db != None and self.db[1] == database:
             return self.db
         try:

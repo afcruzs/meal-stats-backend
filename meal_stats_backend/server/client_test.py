@@ -1,10 +1,16 @@
 import requests
 import json
 import base64
+import os
 
 #Set the correct IP and port. Contact your admin :v
-url = "http://192.168.0.59:8080"
+url = "http://10.203.3.155:8080"
 headers = {'content-type': 'application/json'}
+
+
+def get_extension(filename):
+    extension = os.path.splitext(filename)[1][1:]
+    return extension
 
 def test_classify(image_path):
     global url, headers
@@ -18,7 +24,7 @@ def test_classify(image_path):
         "method": "getNutritionalInfo",
         "params": [{
             'image' : encoded_string,
-            'file_extension' : 'png'
+            'file_extension' : get_extension(image_path)
         }],
         "jsonrpc": "2.0",
         "id": 0,
@@ -31,4 +37,4 @@ def test_classify(image_path):
 
 
 if __name__ == "__main__":
-    print test_classify("image.png")
+    print test_classify("/home/felipe/meal_stats_backend/server/sphaguetti.jpg")

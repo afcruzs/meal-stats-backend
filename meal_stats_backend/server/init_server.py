@@ -3,10 +3,10 @@ from werkzeug.serving import run_simple
 from jsonrpc import JSONRPCResponseManager, dispatcher
 from time import time
 import base64
-from subprocess import check_output
 import os
 import socket
 from database.database import Database
+from classifiers import TFClassifer
 
 #DATABASE_HOST = "192.168.0.9"
 DATABASE_HOST = "localhost"
@@ -14,14 +14,7 @@ DATABASE_PORT = 27017
 #DATABASE_PORT = 21072
 DATABASE_NAME = "mealStatsdb"
 
-'''
-    This script inits the server and listens in the 8080 port
-    to resolve classify images requests.
-'''
-
-#Is done by executing tensorflow c++ binaries
-generic_args = '$HOME/tensorflow/bazel-bin/tensorflow/examples/label_image/label_image --graph=/tmp/output_graph.pb --labels=/tmp/output_labels.txt --output_layer=final_result --image='
-
+classifier = TFClassifer() #tensorflow based classifier powered by inceptionv3
 
 '''
 Taken from here:
@@ -33,22 +26,9 @@ def get_ip_address():
     return s.getsockname()[0]
 
 '''
-Creates a valid command to execute in terminal.
+This methods stores the base64 encoded version of the image.
 '''
-def create_args(file_name):
-    return generic_args + file_name
-
-
-'''
-Remote procedure to classify images.
-Params:
-    image : base 64 image encoded
-    file_extension : name of the image file extension (without period)
-
-'''
-def classify(params):
-    base64Image = params['image']
-    file_extension = params['file_extension']
+def store_file(base64Image, file_extension):
 
     time_as_string = str(time()).replace(".","")
     file_path = os.getcwd() + "/" + time_as_string + "." + file_extension
@@ -56,16 +36,24 @@ def classify(params):
     with open(file_path, "wb") as fh:
         fh.write(base64.decodestring(base64Image))
 
-    args = create_args(file_path)
-    output = check_output(args,shell=True)
-    response = [class_result.split(":") for class_result in output.split(",")]
-    os.remove(file_path)
-    return response
+    return file_path
 
+
+'''
+Remote procedure to return nutritional info.
+Params:
+    image : base 64 image encoded
+    file_extension : name of the image file extension (without period)
+
+'''
 def getNutritionalInfo(params):
     print "Request arrived, passing to classifier..."
-    response = classify(params)
-    top_results = [(label, float(rate))for label, rate  in response]
+    base64Image = params['image']
+    file_extension = params['file_extension']
+
+    file_path = store_file(base64Image, file_extension)
+    top_results = classifier.classifyWithPath(file_path)
+
     top_results.sort(key=lambda x: -x[1])
 
     results = [top_results[0]]
@@ -86,9 +74,11 @@ def getNutritionalInfo(params):
         info = db_connection.getStats(best_label)
         print "Info returned: ", info
         if not info:
-            return {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
-        del info['_id']
+            return_results = {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
+        else:
+            del info['_id']
 
+    os.remove(file_path) #Removes tmp file :vvv
     return return_results
 
 
