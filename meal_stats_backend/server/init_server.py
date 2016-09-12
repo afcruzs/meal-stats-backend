@@ -7,12 +7,7 @@ import os
 import socket
 from database.database import Database
 from classifiers import TFClassifer
-
-#DATABASE_HOST = "192.168.0.9"
-DATABASE_HOST = "localhost"
-DATABASE_PORT = 27017
-#DATABASE_PORT = 21072
-DATABASE_NAME = "mealStatsdb"
+import argparse
 
 classifier = TFClassifer() #tensorflow based classifier powered by inceptionv3
 
@@ -98,7 +93,17 @@ def application(request):
     return Response(response.json, mimetype='application/json')
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--PORT", help="Port of the server")
+parser.add_argument("--DATABASE_HOST", help="Host of the database")
+parser.add_argument("--DATABASE_PORT", help="Port of the database")
+parser.add_argument("--DATABASE_NAME", help="Database name")
+
 if __name__ == '__main__':
+    args = parser.parse_args()
+    PORT = int(args.PORT) if args.PORT else 8080
+    DATABASE_PORT = int(args.DATABASE_PORT) if args.DATABASE_PORT else 27017
+    DATABASE_HOST = args.DATABASE_HOST if args.DATABASE_HOST else "localhost"
+    DATABASE_NAME = args.DATABASE_NAME if args.DATABASE_NAME else "mealStatsdb"
     ip_address = get_ip_address()
-    PORT = 8080
     run_simple(ip_address, PORT, application)
