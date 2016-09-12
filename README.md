@@ -10,7 +10,8 @@ This steps assume you install tensorflow with **anaconda 2** and it creates a sp
 2. werkzeug, see [this](https://anaconda.org/delicb/werkzeug).
 3. jsonrpc,  see [this](https://anaconda.org/auto/json-rpc).
 4. PIL, see [this](https://anaconda.org/anaconda/pil).
-5. pymongo, see [this](https://anaconda.org/anaconda/pymongo).
+5. MongoDB see [this](https://docs.mongodb.com/manual/installation/).
+6. pymongo, see [this](https://anaconda.org/anaconda/pymongo).
 
 
 
