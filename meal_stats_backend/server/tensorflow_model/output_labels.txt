@@ -1,0 +1,10 @@
+hamburger
+hot dog
+donuts
+french fries
+fried rice
+spaghetti bolognese
+nachos
+club sandwich
+ice cream
+pizza
