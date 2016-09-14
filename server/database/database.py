@@ -32,6 +32,8 @@ class Database(object):
 
     def getStats( self, category ):
          result = self.db.Food.find_one({'category': category })
+         if result:
+            del result['_id']
          return result
 
     def close_client(self):

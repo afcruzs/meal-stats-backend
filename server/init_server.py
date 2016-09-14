@@ -40,42 +40,56 @@ Params:
     image : base 64 image encoded
     file_extension : name of the image file extension (without period)
 
+    In case of error the returned dictionary has the key error and the value
+    of the message. If there are details for internal logging (not for user showing)
+    are stored in the propierty details.
 '''
+
 def getNutritionalInfo(params):
-    print "Request arrived, passing to classifier..."
-    base64Image = params['image']
-    file_extension = params['file_extension']
+    try:
+        print "Request arrived, passing to classifier..."
+        for param in ('image', 'file_extension'):
+            if param not in params:
+                return {"error": "%s not in the parameters" % param}
 
-    file_path = store_file(base64Image, file_extension)
-    top_results = classifier.classifyWithPath(file_path)
+        base64Image = params['image']
+        file_extension = params['file_extension']
 
-    top_results.sort(key=lambda x: -x[1])
+        file_path = store_file(base64Image, file_extension)
+        try:
+            top_results = classifier.classifyWithPath(file_path)
+        except ValueError as e:
+            return {"error": e.message}
 
-    results = [top_results[0]]
-    i = 1
-    while i < len(top_results):
-        if top_results[i-1][1] - top_results[i][1] <= 0.1:
-            results.append(top_results[i])
-            i -= 1
-        else:
-            break
+        top_results.sort(key=lambda x: -x[1])
 
-    print "Going to DB..."
-    db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
-    return_results = []
-    print "Classifier results"
-    for best_label, best_prob in results:
-        print best_label, best_prob
-        info = db_connection.getStats(best_label)
-        print "Info returned: ", info
-        if not info:
-            return_results = {'name' : 'cant recognize picture', 'stats' : 'not recognized'}
-        else:
-            del info['_id']
+        results = [top_results[0]]
+        i = 1
+        while i < len(top_results):
+            if top_results[i-1][1] - top_results[i][1] <= 0.1:
+                results.append(top_results[i])
+                i -= 1
+            else:
+                break
 
-    os.remove(file_path) #Removes tmp file :vvv
-    return return_results
+        print "Going to DB..."
+        db_connection = Database(database=DATABASE_NAME, host=DATABASE_HOST, port=DATABASE_PORT)
+        return_results = []
+        print "Classifier results"
+        for best_label, best_prob in results:
+            print best_label, best_prob
+            info = db_connection.getStats(best_label)
+            print "Info returned: ", info
+            if not info:
+                return_results.append({'name' : best_label, 'stats' : 'not nutritional info'})
+            else:
+                return_results.append(info)
 
+        os.remove(file_path) #Removes tmp file :vvv
+
+        return return_results
+    except Exception as e:
+        return {"error": "Internal server error", "details": e.message}
 
 '''
 Main server application method, add the needed services

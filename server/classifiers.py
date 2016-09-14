@@ -47,7 +47,8 @@ class TFClassifer(object):
 
         if not tf.gfile.Exists(imagePath):
             tf.logging.fatal('File does not exist %s', imagePath)
-            return answer
+            raise ValueError('File does not exist %s', imagePath)
+
         extension = self.get_extension(imagePath)
 
         '''
@@ -55,34 +56,40 @@ class TFClassifer(object):
         http://stackoverflow.com/questions/34484148/feeding-image-data-in-tensorflow-for-transfer-learning
         because inceptionV3 only supports JPEG images out-of-the-box.
         '''
-        if extension == "jpg":
-            image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
-            tensor_string = 'DecodeJpeg/contents:0'
-        elif extension == 'png':
-            image = Image.open(imagePath)
-            image_data = np.array(image)[:, :, 0:3]  # Select RGB channels only.
-            tensor_string = 'DecodeJpeg:0'
-        else:
-            raise ValueError("Not supported image type")
+        try:
+            if extension == "jpg":
+                image_data = tf.gfile.FastGFile(imagePath, 'rb').read()
+                tensor_string = 'DecodeJpeg/contents:0'
+            elif extension == 'png':
+                image = Image.open(imagePath)
+                image_data = np.array(image)[:, :, 0:3]  # Select RGB channels only.
+                tensor_string = 'DecodeJpeg:0'
+            else:
+                raise ValueError("Not supported image type")
+        except Exception as e:
+            print str(e)
+            raise ValueError("An error ocurred when decoding the input image")
 
+        try:
+            with tf.Session() as sess:
+                softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+                predictions = sess.run(softmax_tensor, {tensor_string: image_data})
+                predictions = np.squeeze(predictions)
 
-        with tf.Session() as sess:
-            softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
-            predictions = sess.run(softmax_tensor, {tensor_string: image_data})
-            predictions = np.squeeze(predictions)
+                top_k = predictions.argsort()[-5:][::-1]  # Getting top 5 predictions
+                f = open(self.labelsFullPath, 'rb')
+                lines = f.readlines()
+                labels = [str(w).replace("\n", "") for w in lines]
+                predictions_ret = []
+                for node_id in top_k:
+                    human_string = labels[node_id]
+                    score = predictions[node_id]
+                    predictions_ret.append((human_string, float(score)))
+                    #print('%s (score = %.5f)' % (human_string, score))
 
-            top_k = predictions.argsort()[-5:][::-1]  # Getting top 5 predictions
-            f = open(self.labelsFullPath, 'rb')
-            lines = f.readlines()
-            labels = [str(w).replace("\n", "") for w in lines]
-            predictions_ret = []
-            for node_id in top_k:
-                human_string = labels[node_id]
-                score = predictions[node_id]
-                predictions_ret.append((human_string, float(score)))
-                #print('%s (score = %.5f)' % (human_string, score))
+                #answer = labels[top_k[0]]
+                return predictions_ret
+        except Exception as e:
+            raise RuntimeError("Error with tensorflow session")
 
-            #answer = labels[top_k[0]]
-            return predictions_ret
-
-        raise ValueError("Error with tensorflow session")
+        raise RuntimeError("Error with tensorflow session")
