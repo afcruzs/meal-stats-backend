@@ -64,10 +64,9 @@ def getNutritionalInfo(params):
         top_results.sort(key=lambda x: -x[1])
 
         results = [top_results[0]]
-        print top_results
-        i = 1
+        difference_threshold = 0.1
         for i in xrange(1,len(top_results)):
-            if top_results[i-1][1] - top_results[i][1] <= 0.1:
+            if top_results[i-1][1] - top_results[i][1] <= difference_threshold:
                 results.append(top_results[i])
             else:
                 break
