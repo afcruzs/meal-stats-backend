@@ -111,6 +111,7 @@ parser.add_argument("--PORT", help="Port of the server")
 parser.add_argument("--DATABASE_HOST", help="Host of the database")
 parser.add_argument("--DATABASE_PORT", help="Port of the database")
 parser.add_argument("--DATABASE_NAME", help="Database name")
+parser.add_argument("--IP", help="Ip to set the server")
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -118,5 +119,5 @@ if __name__ == '__main__':
     DATABASE_PORT = int(args.DATABASE_PORT) if args.DATABASE_PORT else 27017
     DATABASE_HOST = args.DATABASE_HOST if args.DATABASE_HOST else "localhost"
     DATABASE_NAME = args.DATABASE_NAME if args.DATABASE_NAME else "mealStatsdb"
-    ip_address = get_ip_address()
+    ip_address = args.IP if args.IP else get_ip_address()
     run_simple(ip_address, PORT, application)
