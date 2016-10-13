@@ -23,6 +23,7 @@ Running the server is straightforward, just run `init_server.py` inside the cond
 2. `--DATABASE_HOST` the host of where the database is listening (`localhost` is the default value).
 3. `--DATABASE_PORT` the port of where the database is listening (`27017` is the default value).
 4. `--DATABASE_NAME` the name of the mongodb database (`mealStatsdb` is the default value).
+4. `--IP` The ip where the server will be listening (The internal ip is set by default).
 
 Typically the default values should work just fine if the server is in the same machine as the database.
 
